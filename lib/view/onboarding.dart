@@ -3,6 +3,9 @@ import 'package:svg_flutter/svg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:totalxproject/utils/resposnive.dart';
+import 'package:provider/provider.dart';
+import 'package:totalxproject/controller/auth_provider.dart';
+import 'package:totalxproject/view/listpage.dart';
 
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({super.key});
@@ -14,6 +17,8 @@ class OnBoardingScreen extends StatefulWidget {
 class _OnBoardingScreenState extends State<OnBoardingScreen> {
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
+
     return Scaffold(
        backgroundColor: Color(0xffFAFAFA),
        body: Container(
@@ -46,7 +51,19 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: ElevatedButton(
-                  onPressed: () {},
+                          onPressed: authProvider.isLoading 
+                        ? null 
+                        : () async {
+                            final userCredential = await authProvider.signInWithGoogle();
+                            if (userCredential != null && userCredential.user != null) {
+                              if (mounted) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const HomePage()),
+                                );
+                              }
+                            }
+                          },
                   style: ElevatedButton.styleFrom(
                     backgroundColor:Color(0xffFAFAFA),
                     side: BorderSide(
@@ -58,24 +75,26 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                       borderRadius: BorderRadius.circular(10.r),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SvgPicture.asset(
-                        "assets/google.svg",
-                        width: 24.w,
-                        height: 24.w,
+                  child: authProvider.isLoading
+                    ? const CircularProgressIndicator()
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          SvgPicture.asset(
+                            "assets/google.svg",
+                            width: 24.w,
+                            height: 24.w,
+                          ),
+                          SizedBox(width: 12.w),
+                          Text(
+                            "Continue with Google",
+                            style: GoogleFonts.inter(
+                              fontSize: 16.sp,
+                              color: Colors.black
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 12.w),
-                      Text(
-                        "Continue with Google",
-                        style: GoogleFonts.inter(
-                          fontSize: 16.sp,
-                          color: Colors.black
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               SizedBox(height: 10.h),
@@ -115,4 +134,4 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
         ),
       );
   }
-}
+}
